@@ -57,7 +57,12 @@ class MainWindow(QMainWindow):
         self.model.insertRows(self.model.rowCount(), 1)
 
     def del_row(self):
-        self.model.removeRow(self.ui.tableView.currentIndex().row())
+        choice = QMessageBox.question(self, 'Confirm Deleting',
+                                            "ต้องที่จะลบ ข้อมูลใช่ไหม",
+                                            QMessageBox.Yes | QMessageBox.No)
+        if choice == QMessageBox.Yes:
+            print("Deleted Now")
+            self.model.removeRow(self.ui.tableView.currentIndex().row())
 
     def refresh_row(self):
         print("Refresh ROW")
