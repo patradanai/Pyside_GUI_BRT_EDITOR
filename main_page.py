@@ -18,25 +18,30 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__(parent=parent)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        self.setWindowTitle("NMPSC BRT LIST")
+        self.resize(800, 600)
+        self.setWindowTitle("NMPSC BRTLIST")
 
+        # ------- Set Text ------
         self.ui.pushButton.setText("ADD ROW")
         self.ui.pushButton_2.setText("DEL ROW")
         self.ui.pushButton_3.setText("REFRESH")
         self.ui.pushButton_4.setText("LOAD DATABASE")
+        self.ui.pushButton_5.setText("EXIT")
 
         self.ui.label.setText("Editor BRT")
 
+        # ------- Signal and Slot -------
         self.ui.pushButton_4.clicked.connect(self.Show_Database)
         self.ui.pushButton.clicked.connect(self.add_row)
         self.ui.pushButton_2.clicked.connect(self.del_row)
         self.ui.pushButton_3.clicked.connect(self.refresh_row)
+        self.ui.pushButton_5.clicked.connect(sys.exit)
         self.ui.tableView.clicked.connect(self.find_row)
 
     def database_connect(self):
-        cnxn = f'DRIVER={{ODBC Driver 17 for SQL Server}};'\
-            f'SERVER=mtl-700-noa55;'\
-            f'DATABASE=MT740_LOSSCODE;'\
+        cnxn = f'DRIVER={{SQL Server}};'\
+            f'SERVER=mt700svr;'\
+            f'DATABASE=MT700PDDB;'\
             f'UID=sa;PWD=qwerty@1'
 
         self.db = QSqlDatabase.addDatabase('QODBC')
@@ -68,10 +73,10 @@ class MainWindow(QMainWindow):
         self.model = QSqlTableModel()
         self.model.setTable("NMPSC_TROUBLE")
         self.model.setEditStrategy(QSqlTableModel.OnFieldChange)
-        self.model.setFilter("id != '0' ORDER BY convert(int,id) ASC")
+        self.model.setFilter("No != '0' ORDER BY convert(int,No) ASC")
         self.model.select()
         self.model.setHeaderData(1, Qt.Horizontal, ("Block"))
-        self.model.setHeaderData(2, Qt.Horizontal, ("Touble"))
+        self.model.setHeaderData(2, Qt.Horizontal, ("Trouble"))
         self.model.setHeaderData(3, Qt.Horizontal, ("Cause"))
 
         print(self.model.rowCount())
