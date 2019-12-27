@@ -31,12 +31,19 @@ class MainWindow(QMainWindow):
         self.ui.label.setText("Editor BRT")
 
         # ------- Signal and Slot -------
-        self.ui.pushButton_4.clicked.connect(self.Show_Database)
+        self.ui.pushButton_4.clicked.connect(self.show_query)
         self.ui.pushButton.clicked.connect(self.add_row)
         self.ui.pushButton_2.clicked.connect(self.del_row)
         self.ui.pushButton_3.clicked.connect(self.refresh_row)
         self.ui.pushButton_5.clicked.connect(sys.exit)
         self.ui.tableView.clicked.connect(self.find_row)
+
+        self.ui.lineEdit.textChanged.connect(
+            self.fillter_model)
+
+        self.ui.lineEdit_2.textChanged.connect(self.fillter_model_trouble)
+
+        self.ui.lineEdit_3.textChanged.connect(self.fillter_model_cause)
 
     def database_connect(self):
         cnxn = f'DRIVER={{SQL Server}};'\
@@ -58,23 +65,26 @@ class MainWindow(QMainWindow):
 
     def del_row(self):
         choice = QMessageBox.question(self, 'Confirm Deleting',
-                                            "ต้องที่จะลบ ข้อมูลใช่ไหม",
-                                            QMessageBox.Yes | QMessageBox.No)
+                                      "ต้องที่จะลบ ข้อมูลใช่ไหม",
+                                      QMessageBox.Yes | QMessageBox.No)
         if choice == QMessageBox.Yes:
             print("Deleted Now")
             self.model.removeRow(self.ui.tableView.currentIndex().row())
 
     def refresh_row(self):
         print("Refresh ROW")
-        self.model.setFilter("id != '0' ORDER BY convert(int,id) ASC")
+        self.model.setFilter("No != '0' ORDER BY convert(int,No) ASC")
         self.model.select()
 
     def find_row(self, i):
         print(self.ui.tableView.currentIndex().row())
 
     def show_query(self):
+
+        # Connect DataBase
         self.database_connect()
 
+        # Initial QSQLTableModel
         self.model = QSqlTableModel()
         self.model.setTable("NMPSC_TROUBLE")
         self.model.setEditStrategy(QSqlTableModel.OnFieldChange)
@@ -84,13 +94,40 @@ class MainWindow(QMainWindow):
         self.model.setHeaderData(2, Qt.Horizontal, ("Trouble"))
         self.model.setHeaderData(3, Qt.Horizontal, ("Cause"))
 
-        print(self.model.rowCount())
-        self.ui.tableView.setModel(self.model)
+        self.ui.tableView.setModel(self.model)      # Print model on Tableview
 
-        self.ui.pushButton_4.setEnabled(False)
+        # Initial FillterProxyModel Block
+        self.fillter_proxymodel = QSortFilterProxyModel()
+        self.fillter_proxymodel.setSourceModel(self.model)
+        self.fillter_proxymodel.setFilterKeyColumn(1)
 
-    def Show_Database(self):
-        dataview = self.show_query()
+        # Initial FillterProxyModel Trouble
+        self.fillter_proxymodel_trouble = QSortFilterProxyModel()
+        self.fillter_proxymodel_trouble.setSourceModel(self.fillter_proxymodel)
+        self.fillter_proxymodel_trouble.setFilterKeyColumn(2)
+
+        # Initial FillterProxyModel Cause
+        self.fillter_proxymodel_cause = QSortFilterProxyModel()
+        self.fillter_proxymodel_cause.setSourceModel(
+            self.fillter_proxymodel_trouble)
+        self.fillter_proxymodel_cause.setFilterKeyColumn(3)
+
+        self.ui.pushButton_4.setEnabled(False)      # Disable Buttom
+
+    @pyqtSlot(str)
+    def fillter_model(self, x):
+        self.fillter_proxymodel.setFilterRegExp(x)
+        self.ui.tableView.setModel(self.fillter_proxymodel)
+
+    @pyqtSlot(str)
+    def fillter_model_trouble(self, x):
+        self.fillter_proxymodel_trouble.setFilterRegExp(x)
+        self.ui.tableView.setModel(self.fillter_proxymodel_trouble)
+
+    @pyqtSlot(str)
+    def fillter_model_cause(self, x):
+        self.fillter_proxymodel_cause.setFilterRegExp(x)
+        self.ui.tableView.setModel(self.fillter_proxymodel_cause)
 
 
 if __name__ == "__main__":
