@@ -60,8 +60,14 @@ class MainWindow(QMainWindow):
             print("CAN'T CONNECT SQL")
 
     def add_row(self):
-        print(self.model.rowCount())
-        self.model.insertRows(self.model.rowCount(), 1)
+        choice = QMessageBox.question(self, 'Confirm Adding',
+                                      "ต้องที่จะเพิ่ม ข้อมูลใช่ไหม",
+                                      QMessageBox.Yes | QMessageBox.No)
+        if choice == QMessageBox.Yes:
+            self.clear_lineEdit()
+            print(self.model.rowCount())
+            self.model.insertRows(self.model.rowCount(), 1)
+            self.ui.tableView.scrollToBottom()  # scoll to Buttom
 
     def del_row(self):
         choice = QMessageBox.question(self, 'Confirm Deleting',
@@ -113,6 +119,15 @@ class MainWindow(QMainWindow):
         self.fillter_proxymodel_cause.setFilterKeyColumn(3)
 
         self.ui.pushButton_4.setEnabled(False)      # Disable Buttom
+
+    def clear_lineEdit(self):
+        # Clear LineEdit
+        self.ui.lineEdit.clear()
+        self.ui.lineEdit_2.clear()
+        self.ui.lineEdit_3.clear()
+
+        # Refresh TableView
+        self.ui.tableView.setModel(self.fillter_proxymodel)
 
     @pyqtSlot(str)
     def fillter_model(self, x):
